@@ -46,10 +46,33 @@ export const handleScrapeKijiji: RequestHandler = async (req, res) => {
 
     // Fallbacks
     if (!phone) {
-      // Look for "phone" in data attributes, JSON-LD or anywhere in text
-      const jsonLd = $('script[type="application/ld+json"]').map((_, el) => $(el).contents().text()).get().join("\n");
-      const phoneFromJson = jsonLd.match(/"telephone"\s*:\s*"([^"]+)"/i)?.[1];
-      phone = extractDigits(phoneFromJson) || extractDigits($("*[data-phone], *[data-testid*='phone'], a[href^='tel']").first().attr("href")) || extractDigits($("a[href^='tel']").first().text()) || null;
+      // Provided description selector by user
+      const selDesc = "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > div:nth-child(2) > div.sc-1f51e79f-0.sc-31977afe-0.sc-ea528b23-1.dWsjGh.kgrFRj.kqdDwo > div.sc-69f589a8-0.fqzJRP > div.sc-ea528b23-0.bmKHcm > div";
+      const descText = cleanText($(selDesc).text());
+
+      // Collect candidates and run robust Canadian phone regex
+      const candidates = [
+        descText,
+        cleanText($("*[data-phone], *[data-testid*='phone']").first().text()),
+        cleanText($("a[href^='tel']").first().attr("href")),
+        cleanText($("a[href^='tel']").first().text()),
+        cleanText($("body").text()),
+      ].filter(Boolean) as string[];
+
+      const caPhoneRe = /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}/g;
+      for (const t of candidates) {
+        const m = t.match(caPhoneRe);
+        if (m && m.length) {
+          phone = m[0];
+          break;
+        }
+      }
+
+      if (!phone) {
+        const jsonLd = $('script[type="application/ld+json"]').map((_, el) => $(el).contents().text()).get().join("\n");
+        const phoneFromJson = jsonLd.match(/"telephone"\s*:\s*"([^"]+)"/i)?.[1];
+        phone = extractDigits(phoneFromJson) || null;
+      }
     }
 
     const result: KijijiScrapeResult = {
