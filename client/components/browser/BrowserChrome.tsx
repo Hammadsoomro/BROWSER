@@ -231,6 +231,14 @@ export default function BrowserChrome() {
             >
               <Home className="h-5 w-5" />
             </button>
+            <button
+              onClick={() => setScrapeOpen(true)}
+              className="inline-flex h-9 items-center justify-center rounded-lg bg-white/10 px-3 text-foreground/80 hover:bg-white/15"
+              title="Scrape data"
+            >
+              <Search className="h-5 w-5" />
+              <span className="ml-1 hidden text-xs sm:inline">Scrape</span>
+            </button>
             <form onSubmit={onSubmit} className="relative ml-1 flex-1">
               <div className="group flex items-center gap-2 rounded-xl border border-white/10 bg-background px-3 py-2 ring-1 ring-transparent transition-shadow focus-within:ring-brand-500/60">
                 <Globe className="h-4 w-4 text-foreground/60" />
