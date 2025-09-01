@@ -82,7 +82,20 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    /* Brand palette */
+    --brand-50: 232 100% 97%;
+    --brand-100: 236 94% 92%;
+    --brand-200: 240 94% 85%;
+    --brand-300: 249 92% 78%;
+    --brand-400: 258 90% 70%;
+    --brand-500: 264 85% 63%;
+    --brand-600: 267 78% 55%;
+    --brand-700: 270 80% 50%;
+    --brand-800: 273 73% 44%;
+    --brand-900: 276 66% 38%;
+    --brand-950: 279 64% 26%;
+
+    --primary: var(--brand-300);
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -99,7 +112,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: var(--brand-500);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
