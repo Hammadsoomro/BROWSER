@@ -288,6 +288,7 @@ export default function BrowserChrome() {
                 <WebView url={activeTab?.url ?? "about:blank"} />
               )}
             </motion.div>
+            <ScrapePanel open={scrapeOpen} initialUrl={activeTab?.url?.startsWith("http") ? activeTab.url : "https://example.com"} onClose={() => setScrapeOpen(false)} />
           </div>
         </div>
       </div>
