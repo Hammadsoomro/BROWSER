@@ -59,72 +59,120 @@ export default function ScrapePanel({
             <button
               onClick={run}
               disabled={loading || !/^https?:\/\//i.test(url)}
-              className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}
+              className={cn(
+                "rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50",
+              )}
             >
               {loading ? "Scraping…" : "Scrape"}
             </button>
-            <button onClick={onClose} className="rounded-lg border border-white/10 px-3 py-2 text-sm">Close</button>
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-white/10 px-3 py-2 text-sm"
+            >
+              Close
+            </button>
           </div>
 
           <div className="flex-1 overflow-auto p-4">
             {!data && !error && !loading && (
-              <div className="text-center text-sm text-foreground/70">Enter a URL to scrape. For Kijiji, we parse the page and description for a phone number.</div>
+              <div className="text-center text-sm text-foreground/70">
+                Enter a URL to scrape. For Kijiji, we parse the page and
+                description for a phone number.
+              </div>
             )}
-            {error && <div className="text-center text-sm text-red-400">{error}</div>}
-            {data && (() => {
-              const isKijiji = /(^|\.)kijiji\.ca$/i.test(new URL((data as any).url).hostname);
-              if (isKijiji && (data as any).model !== undefined) {
-                const d = data as any as { url: string; model: string | null; price: string | null; address: string | null; phone: string | null };
-                return (
-                  <div className="mx-auto max-w-3xl">
-                    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <h3 className="text-sm font-semibold">Kijiji Listing</h3>
-                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <Field label="Model" value={d.model} />
-                        <Field label="Price" value={d.price} />
-                        <Field label="Address" value={d.address} />
-                        <Field label="Phone" value={d.phone} />
-                      </div>
-                      <a className="mt-4 inline-block text-xs text-brand-400 hover:underline" href={d.url} target="_blank" rel="noreferrer">Open listing</a>
-                    </section>
-                  </div>
+            {error && (
+              <div className="text-center text-sm text-red-400">{error}</div>
+            )}
+            {data &&
+              (() => {
+                const isKijiji = /(^|\.)kijiji\.ca$/i.test(
+                  new URL((data as any).url).hostname,
                 );
-              }
-              return (
-                <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
-                  <div className="md:col-span-2 space-y-4">
+                if (isKijiji && (data as any).model !== undefined) {
+                  const d = data as any as {
+                    url: string;
+                    model: string | null;
+                    price: string | null;
+                    address: string | null;
+                    phone: string | null;
+                  };
+                  return (
+                    <div className="mx-auto max-w-3xl">
+                      <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+                        <h3 className="text-sm font-semibold">
+                          Kijiji Listing
+                        </h3>
+                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <Field label="Model" value={d.model} />
+                          <Field label="Price" value={d.price} />
+                          <Field label="Address" value={d.address} />
+                          <Field label="Phone" value={d.phone} />
+                        </div>
+                        <a
+                          className="mt-4 inline-block text-xs text-brand-400 hover:underline"
+                          href={d.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open listing
+                        </a>
+                      </section>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
+                    <div className="md:col-span-2 space-y-4">
+                      <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+                        <h3 className="text-sm font-semibold">Meta</h3>
+                        <div className="mt-2 text-sm">
+                          <div>
+                            <span className="text-foreground/60">Title:</span>{" "}
+                            {(data as any).title || "—"}
+                          </div>
+                          <div className="mt-1">
+                            <span className="text-foreground/60">
+                              Description:
+                            </span>{" "}
+                            {(data as any).description || "—"}
+                          </div>
+                          <div className="mt-1">
+                            <span className="text-foreground/60">URL:</span>{" "}
+                            {(data as any).url}
+                          </div>
+                        </div>
+                      </section>
+                      <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+                        <h3 className="text-sm font-semibold">Headings</h3>
+                        <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
+                          {(data as any).headings.map(
+                            (h: string, i: number) => (
+                              <li key={i}>{h}</li>
+                            ),
+                          )}
+                        </ul>
+                      </section>
+                    </div>
                     <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <h3 className="text-sm font-semibold">Meta</h3>
-                      <div className="mt-2 text-sm">
-                        <div><span className="text-foreground/60">Title:</span> {(data as any).title || "—"}</div>
-                        <div className="mt-1"><span className="text-foreground/60">Description:</span> {(data as any).description || "—"}</div>
-                        <div className="mt-1"><span className="text-foreground/60">URL:</span> {(data as any).url}</div>
-                      </div>
-                    </section>
-                    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <h3 className="text-sm font-semibold">Headings</h3>
-                      <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
-                        {(data as any).headings.map((h: string, i: number) => (
-                          <li key={i}>{h}</li>
+                      <h3 className="text-sm font-semibold">Top Links</h3>
+                      <ul className="mt-2 space-y-2 text-sm">
+                        {(data as any).links.map((l: any, i: number) => (
+                          <li key={i} className="truncate">
+                            <a
+                              className="text-brand-400 hover:underline"
+                              href={l.href}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {l.text || l.href}
+                            </a>
+                          </li>
                         ))}
                       </ul>
                     </section>
                   </div>
-                  <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                    <h3 className="text-sm font-semibold">Top Links</h3>
-                    <ul className="mt-2 space-y-2 text-sm">
-                      {(data as any).links.map((l: any, i: number) => (
-                        <li key={i} className="truncate">
-                          <a className="text-brand-400 hover:underline" href={l.href} target="_blank" rel="noreferrer">
-                            {l.text || l.href}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                </div>
-              );
-            })()}
+                );
+              })()}
           </div>
         </motion.div>
       )}

@@ -19,21 +19,37 @@ export const handleScrape: RequestHandler = async (req, res) => {
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
-    const resp = await fetch(url, { signal: controller.signal, headers: { "user-agent": "FusionBrowserBot/1.0" } });
+    const resp = await fetch(url, {
+      signal: controller.signal,
+      headers: { "user-agent": "FusionBrowserBot/1.0" },
+    });
     clearTimeout(timeout);
 
     if (!resp.ok) {
-      return res.status(502).json({ error: `Fetch failed with status ${resp.status}` });
+      return res
+        .status(502)
+        .json({ error: `Fetch failed with status ${resp.status}` });
     }
 
     const html = await resp.text();
     const $ = cheerio.load(html);
 
-    const title = ($("meta[property='og:title']").attr("content") || $("title").first().text() || null)?.trim() || null;
-    const description = ($("meta[name='description']").attr("content") || $("meta[property='og:description']").attr("content") || null);
+    const title =
+      (
+        $("meta[property='og:title']").attr("content") ||
+        $("title").first().text() ||
+        null
+      )?.trim() || null;
+    const description =
+      $("meta[name='description']").attr("content") ||
+      $("meta[property='og:description']").attr("content") ||
+      null;
 
     const headings: string[] = [
-      ...$("h1, h2, h3").slice(0, 20).map((_, el) => $(el).text().trim()).get(),
+      ...$("h1, h2, h3")
+        .slice(0, 20)
+        .map((_, el) => $(el).text().trim())
+        .get(),
     ];
 
     const links: ScrapeLink[] = $("a[href]")

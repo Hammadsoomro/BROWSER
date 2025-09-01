@@ -12,31 +12,45 @@ function extractDigits(v?: string | null) {
 }
 
 function sameHost(u: string, host: string) {
-  try { return new URL(u).hostname.endsWith(host); } catch { return false; }
+  try {
+    return new URL(u).hostname.endsWith(host);
+  } catch {
+    return false;
+  }
 }
 
 export const handleScrapeKijiji: RequestHandler = async (req, res) => {
   try {
     const { url } = req.body as ScrapeRequest;
     if (!url || !/^https?:\/\//i.test(url) || !sameHost(url, "kijiji.ca")) {
-      return res.status(400).json({ error: "Provide a valid kijiji.ca listing URL" });
+      return res
+        .status(400)
+        .json({ error: "Provide a valid kijiji.ca listing URL" });
     }
 
     const controller = new AbortController();
     const to = setTimeout(() => controller.abort(), 15000);
-    const response = await fetch(url, { signal: controller.signal, headers: { "user-agent": "FusionBrowserBot/1.0" } });
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { "user-agent": "FusionBrowserBot/1.0" },
+    });
     clearTimeout(to);
 
-    if (!response.ok) return res.status(502).json({ error: `Fetch ${response.status}` });
+    if (!response.ok)
+      return res.status(502).json({ error: `Fetch ${response.status}` });
 
     const html = await response.text();
     const $ = cheerio.load(html);
 
     // Selectors provided by user
-    const selPhone = "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > section > div.sc-30b4d0e2-3.iFFiBy > div > div.sc-eb45309b-0.vAthl.sc-30b4d0e2-6.iqmXm";
-    const selModel = "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > div:nth-child(2) > div.sc-1f51e79f-0.QJUhf > h1";
-    const selPrice = "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > div:nth-child(2) > div.sc-1f51e79f-0.hVjQcj > div > div > div > p";
-    const selAddress = "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > section > div.sc-30b4d0e2-2.jFnPsI > div > div > div.sc-eb45309b-0.bEMmoW > div > div > button";
+    const selPhone =
+      "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > section > div.sc-30b4d0e2-3.iFFiBy > div > div.sc-eb45309b-0.vAthl.sc-30b4d0e2-6.iqmXm";
+    const selModel =
+      "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > div:nth-child(2) > div.sc-1f51e79f-0.QJUhf > h1";
+    const selPrice =
+      "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > div:nth-child(2) > div.sc-1f51e79f-0.hVjQcj > div > div > div > p";
+    const selAddress =
+      "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > section > div.sc-30b4d0e2-2.jFnPsI > div > div > div.sc-eb45309b-0.bEMmoW > div > div > button";
 
     // Extract as-is
     let phone = cleanText($(selPhone).text());
@@ -47,7 +61,8 @@ export const handleScrapeKijiji: RequestHandler = async (req, res) => {
     // Fallbacks
     if (!phone) {
       // Provided description selector by user
-      const selDesc = "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > div:nth-child(2) > div.sc-1f51e79f-0.sc-31977afe-0.sc-ea528b23-1.dWsjGh.kgrFRj.kqdDwo > div.sc-69f589a8-0.fqzJRP > div.sc-ea528b23-0.bmKHcm > div";
+      const selDesc =
+        "#base-layout-main-wrapper > div.sc-81698752-0.bNPVmS > div.sc-81698752-2.ldPhHG > div:nth-child(2) > div.sc-1f51e79f-0.sc-31977afe-0.sc-ea528b23-1.dWsjGh.kgrFRj.kqdDwo > div.sc-69f589a8-0.fqzJRP > div.sc-ea528b23-0.bmKHcm > div";
       const descText = cleanText($(selDesc).text());
 
       // Collect candidates and run robust Canadian phone regex
@@ -59,7 +74,8 @@ export const handleScrapeKijiji: RequestHandler = async (req, res) => {
         cleanText($("body").text()),
       ].filter(Boolean) as string[];
 
-      const caPhoneRe = /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}/g;
+      const caPhoneRe =
+        /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}/g;
       for (const t of candidates) {
         const m = t.match(caPhoneRe);
         if (m && m.length) {
@@ -69,7 +85,10 @@ export const handleScrapeKijiji: RequestHandler = async (req, res) => {
       }
 
       if (!phone) {
-        const jsonLd = $('script[type="application/ld+json"]').map((_, el) => $(el).contents().text()).get().join("\n");
+        const jsonLd = $('script[type="application/ld+json"]')
+          .map((_, el) => $(el).contents().text())
+          .get()
+          .join("\n");
         const phoneFromJson = jsonLd.match(/"telephone"\s*:\s*"([^"]+)"/i)?.[1];
         phone = extractDigits(phoneFromJson) || null;
       }
