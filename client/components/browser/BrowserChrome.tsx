@@ -63,6 +63,7 @@ export default function BrowserChrome() {
   const activeTab = useMemo(() => tabs.find((t) => t.id === activeId) ?? tabs[0], [tabs, activeId]);
   const [omnibox, setOmnibox] = useState<string>(activeTab?.url ?? "");
   const [reloadKey, setReloadKey] = useState<number>(0);
+  const [scrapeOpen, setScrapeOpen] = useState(false);
 
   const setActiveTab = useCallback((id: string) => {
     setActiveId(id);
