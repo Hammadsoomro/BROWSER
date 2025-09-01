@@ -68,7 +68,7 @@ export default function ScrapePanel({
 
           <div className="flex-1 overflow-auto p-4">
             {!data && !error && !loading && (
-              <div className="text-center text-sm text-foreground/70">Enter a URL to scrape.</div>
+              <div className="text-center text-sm text-foreground/70">Enter a URL to scrape. For Kijiji, we parse the page and description for a phone number.</div>
             )}
             {error && <div className="text-center text-sm text-red-400">{error}</div>}
             {data && (() => {
