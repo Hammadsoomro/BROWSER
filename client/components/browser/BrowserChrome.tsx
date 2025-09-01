@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, X, ChevronLeft, ChevronRight, RefreshCw, Home, Star, Globe } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, RefreshCw, Home, Star, Globe, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ScrapePanel from "./ScrapePanel";
 
 export type Tab = {
   id: string;
