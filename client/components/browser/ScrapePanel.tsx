@@ -22,14 +22,16 @@ export default function ScrapePanel({
     setError(null);
     setData(null);
     try {
-      const res = await fetch("/api/scrape", {
+      const kijiji = /(^|\.)kijiji\.ca$/i.test(new URL(url).hostname);
+      const endpoint = kijiji ? "/api/scrape/kijiji" : "/api/scrape";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed");
-      setData(json as ScrapeResponse);
+      setData(json as any);
     } catch (e: any) {
       setError(e?.message || "Failed");
     } finally {
