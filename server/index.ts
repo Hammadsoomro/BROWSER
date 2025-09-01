@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleScrape } from "./routes/scrape";
+import { handleScrapeKijiji } from "./routes/scrape-kijiji";
 
 export function createServer() {
   const app = express();
