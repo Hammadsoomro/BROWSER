@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ScrapeResponse } from "@shared/api";
 import { cn } from "@/lib/utils";
+import Field from "./Field";
 
 export default function ScrapePanel({
   open,
