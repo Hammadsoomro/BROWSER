@@ -70,40 +70,60 @@ export default function ScrapePanel({
               <div className="text-center text-sm text-foreground/70">Enter a URL to scrape.</div>
             )}
             {error && <div className="text-center text-sm text-red-400">{error}</div>}
-            {data && (
-              <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="md:col-span-2 space-y-4">
+            {data && (() => {
+              const isKijiji = /(^|\.)kijiji\.ca$/i.test(new URL((data as any).url).hostname);
+              if (isKijiji && (data as any).model !== undefined) {
+                const d = data as any as { url: string; model: string | null; price: string | null; address: string | null; phone: string | null };
+                return (
+                  <div className="mx-auto max-w-3xl">
+                    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+                      <h3 className="text-sm font-semibold">Kijiji Listing</h3>
+                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <Field label="Model" value={d.model} />
+                        <Field label="Price" value={d.price} />
+                        <Field label="Address" value={d.address} />
+                        <Field label="Phone" value={d.phone} />
+                      </div>
+                      <a className="mt-4 inline-block text-xs text-brand-400 hover:underline" href={d.url} target="_blank" rel="noreferrer">Open listing</a>
+                    </section>
+                  </div>
+                );
+              }
+              return (
+                <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
+                  <div className="md:col-span-2 space-y-4">
+                    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+                      <h3 className="text-sm font-semibold">Meta</h3>
+                      <div className="mt-2 text-sm">
+                        <div><span className="text-foreground/60">Title:</span> {(data as any).title || "—"}</div>
+                        <div className="mt-1"><span className="text-foreground/60">Description:</span> {(data as any).description || "—"}</div>
+                        <div className="mt-1"><span className="text-foreground/60">URL:</span> {(data as any).url}</div>
+                      </div>
+                    </section>
+                    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+                      <h3 className="text-sm font-semibold">Headings</h3>
+                      <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
+                        {(data as any).headings.map((h: string, i: number) => (
+                          <li key={i}>{h}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  </div>
                   <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                    <h3 className="text-sm font-semibold">Meta</h3>
-                    <div className="mt-2 text-sm">
-                      <div><span className="text-foreground/60">Title:</span> {data.title || "—"}</div>
-                      <div className="mt-1"><span className="text-foreground/60">Description:</span> {data.description || "—"}</div>
-                      <div className="mt-1"><span className="text-foreground/60">URL:</span> {data.url}</div>
-                    </div>
-                  </section>
-                  <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                    <h3 className="text-sm font-semibold">Headings</h3>
-                    <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
-                      {data.headings.map((h, i) => (
-                        <li key={i}>{h}</li>
+                    <h3 className="text-sm font-semibold">Top Links</h3>
+                    <ul className="mt-2 space-y-2 text-sm">
+                      {(data as any).links.map((l: any, i: number) => (
+                        <li key={i} className="truncate">
+                          <a className="text-brand-400 hover:underline" href={l.href} target="_blank" rel="noreferrer">
+                            {l.text || l.href}
+                          </a>
+                        </li>
                       ))}
                     </ul>
                   </section>
                 </div>
-                <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                  <h3 className="text-sm font-semibold">Top Links</h3>
-                  <ul className="mt-2 space-y-2 text-sm">
-                    {data.links.map((l, i) => (
-                      <li key={i} className="truncate">
-                        <a className="text-brand-400 hover:underline" href={l.href} target="_blank" rel="noreferrer">
-                          {l.text || l.href}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </motion.div>
       )}
