@@ -14,9 +14,17 @@ export default function ScrapePanel({
   onClose: () => void;
 }) {
   const [url, setUrl] = useState<string>(initialUrl);
+  const [list, setList] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ScrapeResponse | null>(null);
+  const [batchLines, setBatchLines] = useState<string[]>([]);
+  const [modeList, setModeList] = useState<boolean>(false);
+
+  function pickEndpoint(u: string) {
+    const host = new URL(u).hostname;
+    return /(^|\.)kijiji\.ca$/i.test(host) ? "/api/scrape/kijiji" : "/api/scrape";
+  }
 
   async function run() {
     setLoading(true);
