@@ -13,19 +13,31 @@ function withPage(url: string, page: number) {
   return url + (hasQuery ? `&${param}` : `?${param}`);
 }
 
+function isListingUrl(u: string) {
+  try {
+    const path = new URL(u).pathname;
+    return /\/v-/.test(path) || /\/[0-9]{7,}$/.test(path);
+  } catch { return false; }
+}
+
 export const handleScrapeKijijiSearch: RequestHandler = async (req, res) => {
   try {
     const { url, pages } = req.body as KijijiSearchRequest;
     const count = Math.max(1, Math.min(20, Number(pages) || 1));
     if (!url || !/^https?:\/\//i.test(url) || !ensureKijiji(url)) {
-      return res.status(400).json({ error: "Provide a valid kijiji.ca search URL" });
+      return res.status(400).json({ error: "Provide a valid kijiji.ca URL" });
     }
 
     const allLinks = new Set<string>();
-    for (let p = 1; p <= count; p++) {
-      const pageUrl = withPage(url, p);
-      const html = await fetchHtml(pageUrl);
-      extractListingLinksFromSearch(html, pageUrl).forEach((l) => allLinks.add(l));
+
+    if (isListingUrl(url)) {
+      allLinks.add(url);
+    } else {
+      for (let p = 1; p <= count; p++) {
+        const pageUrl = withPage(url, p);
+        const html = await fetchHtml(pageUrl);
+        extractListingLinksFromSearch(html, pageUrl).forEach((l) => allLinks.add(l));
+      }
     }
 
     const results: KijijiScrapeResult[] = [];
