@@ -24,9 +24,12 @@ export default function ScrapePanel({
   const [pages, setPages] = useState<number>(5);
 
   function pickEndpoint(u: string) {
-    const host = new URL(u).hostname;
-    const isKijiji = /(^|\.)kijiji\.ca$/i.test(host);
-    if (isKijiji) return "/api/scrape/kijiji/live"; // always prefer live; we'll fallback if it fails
+    try {
+      const v = /^https?:\/\//i.test(u) ? u : `https://${u}`;
+      const host = new URL(v).hostname;
+      const isKijiji = /(^|\.)kijiji\./i.test(host);
+      if (isKijiji) return "/api/scrape/kijiji/live"; // always prefer live; we'll fallback if it fails
+    } catch {}
     return "/api/scrape";
   }
 
