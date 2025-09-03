@@ -6,6 +6,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["playwright-core", "playwright-aws-lambda"]
 
 [functions."api"]
   timeout = 26
