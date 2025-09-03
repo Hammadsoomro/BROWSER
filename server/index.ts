@@ -5,6 +5,7 @@ import { handleDemo } from "./routes/demo";
 import { handleScrape } from "./routes/scrape";
 import { handleScrapeKijiji } from "./routes/scrape-kijiji";
 import { handleScrapeKijijiSearch } from "./routes/scrape-kijiji-search";
+import { handleScrapeKijijiLive } from "./routes/scrape-kijiji-live";
 
 export function createServer() {
   const app = express();
