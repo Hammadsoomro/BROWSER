@@ -31,9 +31,7 @@ export default function ScrapePanel({
     setError(null);
     setData(null);
     try {
-      const kijiji = /(^|\.)kijiji\.ca$/i.test(new URL(url).hostname);
-      const endpoint = kijiji ? "/api/scrape/kijiji" : "/api/scrape";
-      const res = await fetch(endpoint, {
+      const res = await fetch(pickEndpoint(url), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
