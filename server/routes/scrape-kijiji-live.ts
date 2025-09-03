@@ -17,7 +17,11 @@ async function getBrowser() {
     const awsChromium = awsMod.chromium || awsMod.default?.chromium;
     const executablePath = await awsChromium?.executablePath?.();
     if (executablePath) {
-      return await awsChromium.launch({ args: awsChromium.args, executablePath, headless: true });
+      return await awsChromium.launch({
+        args: awsChromium.args,
+        executablePath,
+        headless: true,
+      });
     }
   } catch {}
   try {
