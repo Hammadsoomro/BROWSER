@@ -26,9 +26,7 @@ export default function ScrapePanel({
   function pickEndpoint(u: string) {
     const host = new URL(u).hostname;
     const isKijiji = /(^|\.)kijiji\.ca$/i.test(host);
-    const onProd = typeof window !== "undefined" && !/localhost|127\.0\.0\.1/.test(window.location.hostname);
-    if (isKijiji && onProd) return "/api/scrape/kijiji/live";
-    if (isKijiji) return "/api/scrape/kijiji";
+    if (isKijiji) return "/api/scrape/kijiji/live"; // always prefer live; we'll fallback if it fails
     return "/api/scrape";
   }
 
@@ -37,12 +35,14 @@ export default function ScrapePanel({
     setError(null);
     setData(null);
     try {
-      const res = await fetch(pickEndpoint(url), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-      const json = await res.json();
+      let endpoint = pickEndpoint(url);
+      let res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+      let json = await res.json();
+      if (!res.ok && endpoint.includes("/live")) {
+        // fallback to static
+        res = await fetch("/api/scrape/kijiji", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+        json = await res.json();
+      }
       if (!res.ok) throw new Error(json.error || "Failed");
       setData(json as any);
       setBatchLines([]);
@@ -62,17 +62,15 @@ export default function ScrapePanel({
       const lines: string[] = [];
       for (const u of urls) {
         try {
-          const res = await fetch(pickEndpoint(u), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: u }) });
-          const json = await res.json();
-          if (!res.ok) throw new Error(json.error || "Failed");
-          const isKijiji = /(^|\.)kijiji\.ca$/i.test(new URL(u).hostname);
-          if (isKijiji && json && typeof json === "object") {
-            const line = [json.url || u, json.phone || "", json.model || json.title || "", json.price || "", json.address || ""].join(" | ");
-            lines.push(line);
-          } else {
-            const line = [u, "", json?.title || "", "", ""].join(" | ");
-            lines.push(line);
+          let res = await fetch(pickEndpoint(u), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: u }) });
+          let json = await res.json();
+          if (!res.ok && /kijiji\.ca/i.test(u)) {
+            res = await fetch("/api/scrape/kijiji", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: u }) });
+            json = await res.json();
           }
+          if (!res.ok) throw new Error(json.error || "Failed");
+          const line = [json.url || u, json.phone || "", json.model || json.title || "", json.price || "", json.address || ""].join(" | ");
+          lines.push(line);
         } catch (err: any) {
           lines.push([u, "", "", "", ""].join(" | "));
         }
@@ -94,7 +92,18 @@ export default function ScrapePanel({
       const res = await fetch("/api/scrape/kijiji/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, pages }) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed");
-      const lines: string[] = (json.results as any[]).map((r) => [r.url, r.phone || "", r.model || "", r.price || "", r.address || ""].join(" | "));
+      const results: any[] = json.results || [];
+      // For missing phones, try live endpoint per listing
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        if (!r.phone || /X|Reveal/i.test(String(r.phone))) {
+          try {
+            const res2 = await fetch("/api/scrape/kijiji/live", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: r.url }) });
+            if (res2.ok) results[i] = await res2.json();
+          } catch {}
+        }
+      }
+      const lines: string[] = results.map((r) => [r.url, r.phone || "", r.model || "", r.price || "", r.address || ""].join(" | "));
       setBatchLines(lines);
     } catch (e: any) {
       setError(e?.message || "Failed");
