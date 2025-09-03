@@ -4,7 +4,8 @@ import { scrapeKijijiFromHtml, fetchHtml } from "../lib/kijiji";
 
 function ensureKijiji(u: string) {
   try {
-    return new URL(u).hostname.endsWith("kijiji.ca");
+    const host = new URL(u).hostname.toLowerCase();
+    return host.includes("kijiji.ca");
   } catch {
     return false;
   }
@@ -32,11 +33,11 @@ async function getBrowser() {
 }
 
 export const handleScrapeKijijiLive: RequestHandler = async (req, res) => {
-  const { url } = req.body as ScrapeRequest;
-  if (!url || !/^https?:\/\//i.test(url) || !ensureKijiji(url)) {
-    return res
-      .status(400)
-      .json({ error: "Provide a valid kijiji.ca listing URL" });
+  let { url } = req.body as ScrapeRequest;
+  url = (url || "").trim();
+  if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
+  if (!url || !ensureKijiji(url)) {
+    return res.status(400).json({ error: "Provide a valid kijiji.ca listing URL" });
   }
   let browser: any;
   try {
