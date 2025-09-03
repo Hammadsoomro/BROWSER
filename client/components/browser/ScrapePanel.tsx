@@ -25,7 +25,11 @@ export default function ScrapePanel({
 
   function pickEndpoint(u: string) {
     const host = new URL(u).hostname;
-    return /(^|\.)kijiji\.ca$/i.test(host) ? "/api/scrape/kijiji" : "/api/scrape";
+    const isKijiji = /(^|\.)kijiji\.ca$/i.test(host);
+    const onProd = typeof window !== "undefined" && !/localhost|127\.0\.0\.1/.test(window.location.hostname);
+    if (isKijiji && onProd) return "/api/scrape/kijiji/live";
+    if (isKijiji) return "/api/scrape/kijiji";
+    return "/api/scrape";
   }
 
   async function run() {
