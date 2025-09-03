@@ -128,14 +128,14 @@ export default function ScrapePanel({
                   value={list}
                   onChange={(e) => setList(e.target.value)}
                   placeholder="Paste multiple URLs, one per line"
-                  className="h-24 w-full rounded-lg border border-white/10 bg-background px-3 py-2 text-sm outline-none"
+                  className="h-24 w-full rounded-lg border-2 border-white/20 bg-background px-3 py-2 text-sm outline-none ring-2 ring-transparent focus:ring-brand-500/60"
                 />
               ) : (
                 <input
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder={modeSearch ? "Kijiji search URL (results page)" : "https://kijiji.ca/..."}
-                  className="w-full rounded-lg border border-white/10 bg-background px-3 py-2 text-sm outline-none"
+                  className="w-full rounded-lg border-2 border-white/25 bg-background px-3 py-2 text-base outline-none ring-2 ring-transparent focus:ring-brand-500/60"
                 />
               )}
             </div>
@@ -160,9 +160,8 @@ export default function ScrapePanel({
 
           <div className="flex-1 overflow-auto p-4">
             {!data && !error && !loading && (
-              <div className="text-center text-sm text-foreground/70">
-                Enter a URL to scrape. For Kijiji, we parse the page and
-                description for a phone number.
+              <div className="text-center text-base font-medium text-foreground/80">
+                Enter a URL to scrape. We parse the page
               </div>
             )}
             {error && (
