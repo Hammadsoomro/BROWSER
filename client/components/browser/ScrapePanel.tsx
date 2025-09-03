@@ -36,11 +36,19 @@ export default function ScrapePanel({
     setData(null);
     try {
       let endpoint = pickEndpoint(url);
-      let res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+      let res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
       let json = await res.json();
       if (!res.ok && endpoint.includes("/live")) {
         // fallback to static
-        res = await fetch("/api/scrape/kijiji", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+        res = await fetch("/api/scrape/kijiji", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
         json = await res.json();
       }
       if (!res.ok) throw new Error(json.error || "Failed");
@@ -58,18 +66,35 @@ export default function ScrapePanel({
     setError(null);
     setData(null);
     try {
-      const urls = list.split(/\r?\n/).map((s) => s.trim()).filter((s) => /^https?:\/\//i.test(s));
+      const urls = list
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter((s) => /^https?:\/\//i.test(s));
       const lines: string[] = [];
       for (const u of urls) {
         try {
-          let res = await fetch(pickEndpoint(u), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: u }) });
+          let res = await fetch(pickEndpoint(u), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: u }),
+          });
           let json = await res.json();
           if (!res.ok && /kijiji\.ca/i.test(u)) {
-            res = await fetch("/api/scrape/kijiji", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: u }) });
+            res = await fetch("/api/scrape/kijiji", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: u }),
+            });
             json = await res.json();
           }
           if (!res.ok) throw new Error(json.error || "Failed");
-          const line = [json.url || u, json.phone || "", json.model || json.title || "", json.price || "", json.address || ""].join(" | ");
+          const line = [
+            json.url || u,
+            json.phone || "",
+            json.model || json.title || "",
+            json.price || "",
+            json.address || "",
+          ].join(" | ");
           lines.push(line);
         } catch (err: any) {
           lines.push([u, "", "", "", ""].join(" | "));
@@ -89,7 +114,11 @@ export default function ScrapePanel({
     setData(null);
     setBatchLines([]);
     try {
-      const res = await fetch("/api/scrape/kijiji/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, pages }) });
+      const res = await fetch("/api/scrape/kijiji/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, pages }),
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed");
       const results: any[] = json.results || [];
@@ -98,12 +127,24 @@ export default function ScrapePanel({
         const r = results[i];
         if (!r.phone || /X|Reveal/i.test(String(r.phone))) {
           try {
-            const res2 = await fetch("/api/scrape/kijiji/live", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: r.url }) });
+            const res2 = await fetch("/api/scrape/kijiji/live", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: r.url }),
+            });
             if (res2.ok) results[i] = await res2.json();
           } catch {}
         }
       }
-      const lines: string[] = results.map((r) => [r.url, r.phone || "", r.model || "", r.price || "", r.address || ""].join(" | "));
+      const lines: string[] = results.map((r) =>
+        [
+          r.url,
+          r.phone || "",
+          r.model || "",
+          r.price || "",
+          r.address || "",
+        ].join(" | "),
+      );
       setBatchLines(lines);
     } catch (e: any) {
       setError(e?.message || "Failed");
@@ -113,7 +154,9 @@ export default function ScrapePanel({
   }
 
   function downloadTxt() {
-    const blob = new Blob([batchLines.join("\n")], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([batchLines.join("\n")], {
+      type: "text/plain;charset=utf-8",
+    });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "scrape.txt";
@@ -147,27 +190,84 @@ export default function ScrapePanel({
                 <input
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder={modeSearch ? "Kijiji search URL (results page)" : "https://kijiji.ca/..."}
+                  placeholder={
+                    modeSearch
+                      ? "Kijiji search URL (results page)"
+                      : "https://kijiji.ca/..."
+                  }
                   className="w-full rounded-lg border-2 border-white/25 bg-background px-3 py-2 text-base outline-none ring-2 ring-transparent focus:ring-brand-500/60"
                 />
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => { setModeSearch(false); setModeList((v) => !v); }} className="rounded-lg border border-white/10 px-3 py-2 text-sm">{modeList ? "Single" : "List"}</button>
-              <button onClick={() => { setModeList(false); setModeSearch((v) => !v); }} className="rounded-lg border border-white/10 px-3 py-2 text-sm">{modeSearch ? "Single" : "Search"}</button>
+              <button
+                onClick={() => {
+                  setModeSearch(false);
+                  setModeList((v) => !v);
+                }}
+                className="rounded-lg border border-white/10 px-3 py-2 text-sm"
+              >
+                {modeList ? "Single" : "List"}
+              </button>
+              <button
+                onClick={() => {
+                  setModeList(false);
+                  setModeSearch((v) => !v);
+                }}
+                className="rounded-lg border border-white/10 px-3 py-2 text-sm"
+              >
+                {modeSearch ? "Single" : "Search"}
+              </button>
               {modeSearch && (
-                <select value={pages} onChange={(e) => setPages(parseInt(e.target.value))} className="rounded-lg border border-white/10 bg-background px-2 py-2 text-sm">
-                  {[5,10,15,20].map(n => <option key={n} value={n}>{n} pages</option>)}
+                <select
+                  value={pages}
+                  onChange={(e) => setPages(parseInt(e.target.value))}
+                  className="rounded-lg border border-white/10 bg-background px-2 py-2 text-sm"
+                >
+                  {[5, 10, 15, 20].map((n) => (
+                    <option key={n} value={n}>
+                      {n} pages
+                    </option>
+                  ))}
                 </select>
               )}
               {modeList ? (
-                <button onClick={runBatch} disabled={loading || !list.trim()} className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}>{loading ? "Scraping…" : "Scrape List"}</button>
+                <button
+                  onClick={runBatch}
+                  disabled={loading || !list.trim()}
+                  className={cn(
+                    "rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50",
+                  )}
+                >
+                  {loading ? "Scraping…" : "Scrape List"}
+                </button>
               ) : modeSearch ? (
-                <button onClick={runSearch} disabled={loading || !/^https?:\/\//i.test(url)} className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}>{loading ? "Scraping…" : "Scrape Pages"}</button>
+                <button
+                  onClick={runSearch}
+                  disabled={loading || !/^https?:\/\//i.test(url)}
+                  className={cn(
+                    "rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50",
+                  )}
+                >
+                  {loading ? "Scraping…" : "Scrape Pages"}
+                </button>
               ) : (
-                <button onClick={run} disabled={loading || !/^https?:\/\//i.test(url)} className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}>{loading ? "Scraping…" : "Scrape"}</button>
+                <button
+                  onClick={run}
+                  disabled={loading || !/^https?:\/\//i.test(url)}
+                  className={cn(
+                    "rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50",
+                  )}
+                >
+                  {loading ? "Scraping…" : "Scrape"}
+                </button>
               )}
-              <button onClick={onClose} className="rounded-lg border border-white/10 px-3 py-2 text-sm">Close</button>
+              <button
+                onClick={onClose}
+                className="rounded-lg border border-white/10 px-3 py-2 text-sm"
+              >
+                Close
+              </button>
             </div>
           </div>
 
@@ -184,13 +284,25 @@ export default function ScrapePanel({
             {batchLines.length > 0 && (
               <div className="mx-auto max-w-3xl">
                 <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-                  <h3 className="text-sm font-semibold">Results (.txt format)</h3>
+                  <h3 className="text-sm font-semibold">
+                    Results (.txt format)
+                  </h3>
                   <pre className="mt-2 max-h-64 overflow-auto rounded bg-black/20 p-3 text-xs">
-{batchLines.join("\n")}
+                    {batchLines.join("\n")}
                   </pre>
                   <div className="mt-3 flex gap-2">
-                    <button onClick={downloadTxt} className="rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-3 py-1.5 text-xs text-white">Download .txt</button>
-                    <button onClick={copyTxt} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs">Copy</button>
+                    <button
+                      onClick={downloadTxt}
+                      className="rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-3 py-1.5 text-xs text-white"
+                    >
+                      Download .txt
+                    </button>
+                    <button
+                      onClick={copyTxt}
+                      className="rounded-lg border border-white/10 px-3 py-1.5 text-xs"
+                    >
+                      Copy
+                    </button>
                   </div>
                 </section>
               </div>
