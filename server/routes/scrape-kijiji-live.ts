@@ -3,10 +3,14 @@ import type { KijijiScrapeResult, ScrapeRequest } from "@shared/api";
 import awsChromiumPkg from "playwright-aws-lambda";
 import { chromium } from "playwright-core";
 import { scrapeKijijiFromHtml, fetchHtml } from "../lib/kijiji";
-const { chromium: awsChromium } = (awsChromiumPkg as any);
+const { chromium: awsChromium } = awsChromiumPkg as any;
 
 function ensureKijiji(u: string) {
-  try { return new URL(u).hostname.endsWith("kijiji.ca"); } catch { return false; }
+  try {
+    return new URL(u).hostname.endsWith("kijiji.ca");
+  } catch {
+    return false;
+  }
 }
 
 async function getBrowser() {
@@ -28,12 +32,17 @@ async function getBrowser() {
 export const handleScrapeKijijiLive: RequestHandler = async (req, res) => {
   const { url } = req.body as ScrapeRequest;
   if (!url || !/^https?:\/\//i.test(url) || !ensureKijiji(url)) {
-    return res.status(400).json({ error: "Provide a valid kijiji.ca listing URL" });
+    return res
+      .status(400)
+      .json({ error: "Provide a valid kijiji.ca listing URL" });
   }
   let browser: any;
   try {
     browser = await getBrowser();
-    const context = await browser.newContext({ userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118 Safari/537.36" });
+    const context = await browser.newContext({
+      userAgent:
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118 Safari/537.36",
+    });
     const page = await context.newPage();
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
 
@@ -48,7 +57,10 @@ export const handleScrapeKijijiLive: RequestHandler = async (req, res) => {
     for (const sel of selectors) {
       const btn = await page.locator(sel).first();
       if (await btn.count()) {
-        try { await btn.click({ timeout: 3000 }); await page.waitForTimeout(800); } catch {}
+        try {
+          await btn.click({ timeout: 3000 });
+          await page.waitForTimeout(800);
+        } catch {}
       }
     }
 
@@ -60,14 +72,19 @@ export const handleScrapeKijijiLive: RequestHandler = async (req, res) => {
     }
     if (!phone) {
       const bodyText = await page.locator("body").innerText();
-      const m = bodyText.match(/(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}/);
+      const m = bodyText.match(
+        /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}/,
+      );
       if (m) phone = m[0];
     }
 
     // Also fetch HTML and parse other fields (robust + fast)
     const html = await page.content();
     const parsed = scrapeKijijiFromHtml(url, html);
-    const result: KijijiScrapeResult = { ...parsed, phone: phone || parsed.phone };
+    const result: KijijiScrapeResult = {
+      ...parsed,
+      phone: phone || parsed.phone,
+    };
 
     await page.close();
     await context.close();
@@ -76,14 +93,19 @@ export const handleScrapeKijijiLive: RequestHandler = async (req, res) => {
 
     res.json(result);
   } catch (e: any) {
-    if (browser) try { await browser.close(); } catch {}
+    if (browser)
+      try {
+        await browser.close();
+      } catch {}
     try {
       // Fallback to static scrape so we still return something
       const html = await fetchHtml(url);
       const parsed = scrapeKijijiFromHtml(url, html);
       res.json(parsed);
     } catch (err: any) {
-      res.status(500).json({ error: e?.message || err?.message || "Live scrape failed" });
+      res
+        .status(500)
+        .json({ error: e?.message || err?.message || "Live scrape failed" });
     }
   }
 };
