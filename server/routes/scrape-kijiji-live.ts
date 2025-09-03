@@ -1,8 +1,9 @@
 import type { RequestHandler } from "express";
 import type { KijijiScrapeResult, ScrapeRequest } from "@shared/api";
-import { chromium as awsChromium } from "playwright-aws-lambda";
+import awsChromiumPkg from "playwright-aws-lambda";
 import { chromium } from "playwright-core";
 import { scrapeKijijiFromHtml, fetchHtml } from "../lib/kijiji";
+const { chromium: awsChromium } = (awsChromiumPkg as any);
 
 function ensureKijiji(u: string) {
   try { return new URL(u).hostname.endsWith("kijiji.ca"); } catch { return false; }
