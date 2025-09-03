@@ -23,6 +23,7 @@ export function createServer() {
   app.get("/api/demo", handleDemo);
   app.post("/api/scrape", handleScrape);
   app.post("/api/scrape/kijiji", handleScrapeKijiji);
+  app.post("/api/scrape/kijiji/search", handleScrapeKijijiSearch);
 
   return app;
 }
