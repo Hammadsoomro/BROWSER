@@ -25,7 +25,9 @@ export const handleScrapeKijiji: RequestHandler = async (req, res) => {
     url = (url || "").trim();
     if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
     if (!url || !sameHost(url, "kijiji.ca")) {
-      return res.status(400).json({ error: "Provide a valid kijiji.ca listing URL" });
+      return res
+        .status(400)
+        .json({ error: "Provide a valid kijiji.ca listing URL" });
     }
 
     const controller = new AbortController();
