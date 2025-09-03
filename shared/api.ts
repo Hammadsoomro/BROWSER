@@ -26,3 +26,13 @@ export interface KijijiScrapeResult {
   address: string | null;
   phone: string | null;
 }
+
+export interface KijijiSearchRequest {
+  url: string; // Kijiji search results URL
+  pages: number; // number of pages to crawl
+}
+
+export interface KijijiSearchResponse {
+  totalLinks: number;
+  results: KijijiScrapeResult[];
+}
