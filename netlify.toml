@@ -5,7 +5,7 @@
 
 
 [functions]
-  external_node_modules = ["express", "playwright-core", "playwright-aws-lambda"]
+  external_node_modules = ["playwright-core", "playwright-aws-lambda"]
   node_bundler = "esbuild"
 
 [functions."api"]
