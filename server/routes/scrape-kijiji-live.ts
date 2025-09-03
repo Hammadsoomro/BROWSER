@@ -5,7 +5,8 @@ import { scrapeKijijiFromHtml, fetchHtml } from "../lib/kijiji";
 function ensureKijiji(u: string) {
   try {
     const host = new URL(u).hostname.toLowerCase();
-    return host.includes("kijiji.ca");
+    const parts = host.split(".");
+    return parts.includes("kijiji");
   } catch {
     return false;
   }
