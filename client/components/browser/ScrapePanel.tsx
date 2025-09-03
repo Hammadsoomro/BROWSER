@@ -20,6 +20,8 @@ export default function ScrapePanel({
   const [data, setData] = useState<ScrapeResponse | null>(null);
   const [batchLines, setBatchLines] = useState<string[]>([]);
   const [modeList, setModeList] = useState<boolean>(false);
+  const [modeSearch, setModeSearch] = useState<boolean>(false);
+  const [pages, setPages] = useState<number>(5);
 
   function pickEndpoint(u: string) {
     const host = new URL(u).hostname;
