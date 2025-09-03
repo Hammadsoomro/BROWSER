@@ -11,9 +11,10 @@ function extractDigits(v?: string | null) {
   return s.length >= 7 ? s : null;
 }
 
-function sameHost(u: string, host: string) {
+function isKijiji(u: string) {
   try {
-    return new URL(u).hostname.toLowerCase().includes(host);
+    const host = new URL(u).hostname.toLowerCase();
+    return host.split(".").includes("kijiji");
   } catch {
     return false;
   }
@@ -24,7 +25,7 @@ export const handleScrapeKijiji: RequestHandler = async (req, res) => {
     let { url } = req.body as ScrapeRequest;
     url = (url || "").trim();
     if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
-    if (!url || !sameHost(url, "kijiji.ca")) {
+    if (!url || !isKijiji(url)) {
       return res
         .status(400)
         .json({ error: "Provide a valid kijiji.ca listing URL" });
