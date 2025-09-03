@@ -1,15 +1,28 @@
 import type { RequestHandler } from "express";
-import type { KijijiSearchRequest, KijijiSearchResponse, KijijiScrapeResult } from "@shared/api";
-import { extractListingLinksFromSearch, fetchHtml, scrapeKijijiFromHtml } from "../lib/kijiji";
+import type {
+  KijijiSearchRequest,
+  KijijiSearchResponse,
+  KijijiScrapeResult,
+} from "@shared/api";
+import {
+  extractListingLinksFromSearch,
+  fetchHtml,
+  scrapeKijijiFromHtml,
+} from "../lib/kijiji";
 
 function ensureKijiji(u: string) {
-  try { return new URL(u).hostname.endsWith("kijiji.ca"); } catch { return false; }
+  try {
+    return new URL(u).hostname.endsWith("kijiji.ca");
+  } catch {
+    return false;
+  }
 }
 
 function withPage(url: string, page: number) {
   const hasQuery = url.includes("?");
   const param = `page=${page}`;
-  if (url.match(/[?&]page=\d+/)) return url.replace(/([?&]page=)\d+/, `$1${page}`);
+  if (url.match(/[?&]page=\d+/))
+    return url.replace(/([?&]page=)\d+/, `$1${page}`);
   return url + (hasQuery ? `&${param}` : `?${param}`);
 }
 
@@ -17,7 +30,9 @@ function isListingUrl(u: string) {
   try {
     const path = new URL(u).pathname;
     return /\/v-/.test(path) || /\/[0-9]{7,}$/.test(path);
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 export const handleScrapeKijijiSearch: RequestHandler = async (req, res) => {
@@ -36,7 +51,9 @@ export const handleScrapeKijijiSearch: RequestHandler = async (req, res) => {
       for (let p = 1; p <= count; p++) {
         const pageUrl = withPage(url, p);
         const html = await fetchHtml(pageUrl);
-        extractListingLinksFromSearch(html, pageUrl).forEach((l) => allLinks.add(l));
+        extractListingLinksFromSearch(html, pageUrl).forEach((l) =>
+          allLinks.add(l),
+        );
       }
     }
 
@@ -49,9 +66,14 @@ export const handleScrapeKijijiSearch: RequestHandler = async (req, res) => {
       } catch {}
     }
 
-    const payload: KijijiSearchResponse = { totalLinks: allLinks.size, results };
+    const payload: KijijiSearchResponse = {
+      totalLinks: allLinks.size,
+      results,
+    };
     res.json(payload);
   } catch (e: any) {
-    res.status(500).json({ error: e?.message || "Kijiji search scrape failed" });
+    res
+      .status(500)
+      .json({ error: e?.message || "Kijiji search scrape failed" });
   }
 };
