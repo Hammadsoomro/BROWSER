@@ -7,7 +7,11 @@
 [functions]
   external_node_modules = ["express", "playwright-core", "playwright-aws-lambda"]
   node_bundler = "esbuild"
-  
+
+[functions."api"]
+  timeout = 26
+  memory = 2048
+
 [[redirects]]
   force = true
   from = "/api/*"
