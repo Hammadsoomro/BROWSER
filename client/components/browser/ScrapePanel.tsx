@@ -81,6 +81,24 @@ export default function ScrapePanel({
     }
   }
 
+  async function runSearch() {
+    setLoading(true);
+    setError(null);
+    setData(null);
+    setBatchLines([]);
+    try {
+      const res = await fetch("/api/scrape/kijiji/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, pages }) });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed");
+      const lines: string[] = (json.results as any[]).map((r) => [r.url, r.phone || "", r.model || "", r.price || "", r.address || ""].join(" | "));
+      setBatchLines(lines);
+    } catch (e: any) {
+      setError(e?.message || "Failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function downloadTxt() {
     const blob = new Blob([batchLines.join("\n")], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
@@ -116,34 +134,25 @@ export default function ScrapePanel({
                 <input
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://kijiji.ca/..."
+                  placeholder={modeSearch ? "Kijiji search URL (results page)" : "https://kijiji.ca/..."}
                   className="w-full rounded-lg border border-white/10 bg-background px-3 py-2 text-sm outline-none"
                 />
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setModeList((v) => !v)}
-                className="rounded-lg border border-white/10 px-3 py-2 text-sm"
-              >
-                {modeList ? "Single" : "List"}
-              </button>
+              <button onClick={() => { setModeSearch(false); setModeList((v) => !v); }} className="rounded-lg border border-white/10 px-3 py-2 text-sm">{modeList ? "Single" : "List"}</button>
+              <button onClick={() => { setModeList(false); setModeSearch((v) => !v); }} className="rounded-lg border border-white/10 px-3 py-2 text-sm">{modeSearch ? "Single" : "Search"}</button>
+              {modeSearch && (
+                <select value={pages} onChange={(e) => setPages(parseInt(e.target.value))} className="rounded-lg border border-white/10 bg-background px-2 py-2 text-sm">
+                  {[5,10,15,20].map(n => <option key={n} value={n}>{n} pages</option>)}
+                </select>
+              )}
               {modeList ? (
-                <button
-                  onClick={runBatch}
-                  disabled={loading || !list.trim()}
-                  className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}
-                >
-                  {loading ? "Scraping…" : "Scrape List"}
-                </button>
+                <button onClick={runBatch} disabled={loading || !list.trim()} className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}>{loading ? "Scraping…" : "Scrape List"}</button>
+              ) : modeSearch ? (
+                <button onClick={runSearch} disabled={loading || !/^https?:\/\//i.test(url)} className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}>{loading ? "Scraping…" : "Scrape Pages"}</button>
               ) : (
-                <button
-                  onClick={run}
-                  disabled={loading || !/^https?:\/\//i.test(url)}
-                  className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}
-                >
-                  {loading ? "Scraping…" : "Scrape"}
-                </button>
+                <button onClick={run} disabled={loading || !/^https?:\/\//i.test(url)} className={cn("rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 px-4 py-2 text-sm font-medium text-white disabled:opacity-50")}>{loading ? "Scraping…" : "Scrape"}</button>
               )}
               <button onClick={onClose} className="rounded-lg border border-white/10 px-3 py-2 text-sm">Close</button>
             </div>
