@@ -12,7 +12,8 @@ import {
 
 function ensureKijiji(u: string) {
   try {
-    return new URL(u).hostname.endsWith("kijiji.ca");
+    const host = new URL(u).hostname.toLowerCase();
+    return host.split(".").includes("kijiji");
   } catch {
     return false;
   }
