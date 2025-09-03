@@ -1,9 +1,6 @@
 import type { RequestHandler } from "express";
 import type { KijijiScrapeResult, ScrapeRequest } from "@shared/api";
-import awsChromiumPkg from "playwright-aws-lambda";
-import { chromium } from "playwright-core";
 import { scrapeKijijiFromHtml, fetchHtml } from "../lib/kijiji";
-const { chromium: awsChromium } = awsChromiumPkg as any;
 
 function ensureKijiji(u: string) {
   try {
@@ -14,19 +11,20 @@ function ensureKijiji(u: string) {
 }
 
 async function getBrowser() {
-  // Use AWS-optimized Chromium in serverless; fallback to local chromium when available
+  // Lazy load playwright libs only when invoked
   try {
-    const executablePath = await awsChromium.executablePath();
+    const awsMod: any = await import("playwright-aws-lambda");
+    const awsChromium = awsMod.chromium || awsMod.default?.chromium;
+    const executablePath = await awsChromium?.executablePath?.();
     if (executablePath) {
-      return await awsChromium.launch({
-        args: awsChromium.args,
-        executablePath,
-        headless: true,
-      });
+      return await awsChromium.launch({ args: awsChromium.args, executablePath, headless: true });
     }
   } catch {}
-  // Local fallback (dev)
-  return await chromium.launch({ headless: true });
+  try {
+    const core: any = await import("playwright-core");
+    return await core.chromium.launch({ headless: true });
+  } catch {}
+  throw new Error("Playwright not available");
 }
 
 export const handleScrapeKijijiLive: RequestHandler = async (req, res) => {
